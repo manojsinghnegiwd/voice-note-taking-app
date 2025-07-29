@@ -1,43 +1,52 @@
-import { Image } from 'expo-image';
-import { StyleSheet, Touchable, TouchableOpacity } from 'react-native';
-
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { Text } from 'react-native';
+import NoteCard from '@/components/note/NoteCard';
+import { deleteNote } from '@/store/note';
 import { router } from 'expo-router';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function HomeScreen() {
+  const notes = useSelector((state: any) => state.note.notes)
+  const dispatch = useDispatch();
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <Text>Hello this is a voice note taking app</Text>
-      <TouchableOpacity onPress={() => router.push('/modal')}>
-        <Text>Add Note</Text>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView} contentInsetAdjustmentBehavior='automatic'>
+        {
+          notes.map(
+            (note: any, index: number) => <NoteCard id={note.id} summary={note.summary} onDelete={() => dispatch(deleteNote(note.id))} key={index} content={note.content} audioUri={note.audioUri} />
+          )
+        }
+      </ScrollView>
+      <TouchableOpacity style={styles.AddButton} onPress={() => router.push('/modal')}>
+          <Text style={styles.AddButtonText}>Add Note</Text>
       </TouchableOpacity>
-    </ParallaxScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  AddButton: {
+    backgroundColor: '#333',
+    padding: 10,
+    width: 100,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 4,
+    position: "absolute",
+    bottom: 100,
+    right: 10
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  AddButtonText: {
+    color: "white"
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  scrollView: {
+    flex: 1,
+    backgroundColor: "white",
+    padding: 20
   },
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    padding: 20
+  }
 });

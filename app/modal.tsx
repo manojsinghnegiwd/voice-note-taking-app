@@ -1,7 +1,12 @@
+import NoteCard from '@/components/note/NoteCard';
 import { OPEN_AI_KEY } from '@/constants/keys';
-import { AudioModule, RecordingPresets, useAudioPlayer, useAudioRecorder } from 'expo-audio';
+import { addNote } from '@/store/note';
+import { AudioModule, RecordingPresets, useAudioRecorder } from 'expo-audio';
+import { router } from 'expo-router';
+import LottieView from 'lottie-react-native';
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Button, StyleSheet, View } from "react-native";
+import { useDispatch } from 'react-redux';
 
 export default function Modal () {
     const [isRecording, setIsRecording] = useState<boolean>(true);
@@ -10,7 +15,20 @@ export default function Modal () {
     const [loading, setLoading] = useState<boolean>(false);
 
     const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
-    const player = useAudioPlayer(audioURI);
+
+    const dispatch = useDispatch();
+
+    const saveNote = () => {
+        const note = {
+            id: new Date().getTime(),
+            content: text,
+            audioUri: audioURI,
+            summary: '',
+        }
+
+        dispatch(addNote(note))
+        router.back()
+    }
 
     const record = async () => {
         await recorder.prepareToRecordAsync();
@@ -77,16 +95,19 @@ export default function Modal () {
         <View style={styles.container}>
             {
                 isRecording && (
-                    <TouchableOpacity onPress={() => stopRecording()}>
-                        <Text>Stop Recording</Text>
-                    </TouchableOpacity>
+                    <LottieView
+                        autoPlay
+                        style={{
+                            width: 200,
+                            height: 200
+                        }}
+                        source={require('../assets/animation.json')}
+                    />
                 )
             }
             {
-                audioURI && (
-                    <TouchableOpacity onPress={() => player.play()}>
-                        <Text>Play recording</Text>
-                    </TouchableOpacity>
+                isRecording && (
+                    <Button title='Stop' onPress={() => stopRecording()} />
                 )
             }
             {
@@ -94,9 +115,16 @@ export default function Modal () {
             }
             {
                 text && (
-                    <Text>
-                        {text}
-                    </Text>
+                    <NoteCard
+                        content={text}
+                        audioUri={audioURI}
+                        onDelete={() => router.back()}
+                    />
+                )
+            }
+            {
+                text && (
+                    <Button title="Save" onPress={saveNote} />
                 )
             }
         </View>
@@ -108,6 +136,7 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 20
+        paddingLeft: 20,
+        paddingRight: 20
     }
 })
